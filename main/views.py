@@ -21,7 +21,7 @@ def show_main(request):
         'name': request.user.username,
         'class': 'PBP C',
         'products': products,
-        'last_login': request.COOKIES['last_login'],
+        'last_login': request.COOKIES.get('last_login'),
     }
 
     return render(request, "main.html", context)
@@ -34,6 +34,9 @@ def create_product(request):
      product.user = request.user
      product.save()
      return HttpResponseRedirect(reverse('main:show_main'))
+ 
+ context = {'form': form}
+ return render(request, "create_product.html", context)
 
 def show_xml(request):
     data = Product.objects.all()
@@ -83,3 +86,19 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return response
+
+def edit_product(request, id):
+    product = Product.objects.get(pk = id)
+    form = ProductForm(request.POST or None, instance=product)
+
+    if form.is_valid() and request.method == "POST":
+        form.save()
+        return HttpResponseRedirect(reverse('main:show_main'))
+
+    context = {'form': form}
+    return render(request, "edit_product.html", context)
+
+def delete_product(request, id):
+    product = Product.objects.get(pk = id)
+    product.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
